@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship,sessionmaker
 from sqlalchemy.pool import NullPool
 
 #创建数据库连接
-engine = create_engine('mysql+pymysql://root:@localhost/fivenotes',echo=True,poolclass=NullPool)
+engine = create_engine('mysql+pymysql://root:@localhost/fivenotes',poolclass=NullPool) #echo=True,
 SessionClass=sessionmaker(bind=engine)
 
 Base=declarative_base()

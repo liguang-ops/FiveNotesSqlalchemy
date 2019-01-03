@@ -47,6 +47,15 @@ def queryConsultationList():
     except:
         return jsonify({'status':0})
 
+#统计每天就诊人数
+@app.route('/countTreatmentsPatientNumber',methods=['POST'])
+def countTreatmentsPatientNumber():
+    device_mac=request.form['device_mac']
+    try:
+        date_result=query.getTreatmentPatientNumber(device_mac)
+        return jsonify(date_result)
+    except:
+        return jsonify({'status': 0})
 
 if __name__=='__main__':
     app.run(
