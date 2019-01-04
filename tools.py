@@ -6,7 +6,7 @@ import time
 def timeStampToYMD(timeStamp):
     timeArray=time.localtime(timeStamp)
     print(timeArray)
-    stringYMD=time.strftime('%y-%m-%d',timeArray)
+    stringYMD=time.strftime('%Y-%m-%d',timeArray)
     return stringYMD
 
 if __name__=='__main__':
