@@ -1,7 +1,21 @@
 from flask import Flask,request,jsonify
+from flask_mail import Message,Mail
 import insert,ast,query
 
 app=Flask(__name__)
+
+app.config.update(
+    DEBUG = True,
+    MAIL_SERVER='smtp.qq.com',
+    MAIL_PROT=25,
+    MAIL_USE_TLS = False,
+    MAIL_USE_SSL = False,
+    MAIL_USERNAME = "275959399@qq.com",
+    MAIL_PASSWORD = "uzpvggxhqdllbgef",
+    MAIL_DEBUG = False
+)
+
+mail=Mail(app)
 
 #插入设备信息
 @app.route('/addDevice',methods=['POST'])
@@ -52,10 +66,22 @@ def queryConsultationList():
 def countTreatmentsPatientNumber():
     device_mac=request.form['device_mac']
     try:
-        date_nums=query.getTreatmentPatientNumber(device_mac)
-        return jsonify(date_nums)
+        gender_nums=query.getTreatmentPatientNumber(device_mac)
+        return jsonify(gender_nums)
     except:
         return jsonify({'status': 0})
+
+
+#统计性别人数占比
+@app.route('/countGendersProportion',methods=['POST'])
+def countGendersProportion():
+    device_mac = request.form['device_mac']
+    try:
+        gender_percent = query.getGenderPatientProportion(device_mac)
+        return jsonify(gender_percent)
+    except:
+        return jsonify({'status': 0})
+
 
 
 #统计第一分型人数占比
@@ -89,6 +115,46 @@ def countPerDoctorPatientNumber():
         return jsonify(perdoctor_patient_nums)
     except:
         return jsonify({'status': 0})
+
+
+
+#统计每种类型音乐数
+@app.route('/countPerMusicNumber',methods=['POST'])
+def countPerMusicNumber():
+    try:
+        permusic_nums=query.getPerMusicNumber()
+        return jsonify(permusic_nums)
+    except:
+        return jsonify({'status': 0})
+
+
+#统计整体疗效
+@app.route('/countResultAll',methods=['POST'])
+def countResultAll():
+    device_mac = request.form['device_mac']
+    try:
+        result_all=query.getResultAll(device_mac)
+        return jsonify(result_all)
+    except:
+        return jsonify({'status': 0})
+
+
+# #下载单条数据
+# @app.route('/downloadSingleData',methods=['POST'])
+# def downloadSingleData():
+#     patient_id=request.form['patient_id']
+
+#发送邮件
+#@app.route('/sendMail',methods=['POST'])
+def downloadSingleData():
+    patient_id=request.form['patient_id']
+    msg = Message("Hi!This is a test ", sender='275959399@qq.com', recipients=['18019507168@163.com'])
+    msg.body = "This is a first email"      # msg.body 邮件正文
+    with app.open_resource("C:\\Users\\27595\\Desktop\\test.xlsx") as fp:
+        msg.attach("test.xlsx", "text/xlsx", fp.read())                          # msg.attach 邮件附件添加,msg.attach("文件名", "类型", 读取文件）
+    mail.send(msg)
+    return jsonify({'status':1})
+
 
 if __name__=='__main__':
     app.run(

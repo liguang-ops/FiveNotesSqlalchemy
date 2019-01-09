@@ -77,18 +77,33 @@ class Device(Base):
     patient = relationship('Patient', backref='device')
     doctor = relationship('Doctor', backref='device')
 
-# #定义music表
-# class Music(Base):
-#     __tablename__ = 'music'
-#     music_id = Column(Integer, primary_key=True)
-#     music_human_no=Column(String(4),nullable=False,unique=True,index=True)
-#     music_name=Column(String(50),nullable=True)
-#     music_singer = Column(String(20), nullable=True)
-#     music_characteristic = Column(String(20), nullable=True)
-#     music_score = Column(Integer, nullable=True)
-#     music_group=Column(String(1),nullable=False)
-#     treatment = relationship('Treatment', backref='music')
+#定义music表
+class Music(Base):
+    __tablename__ = 'music'
+    music_id = Column(Integer, primary_key=True)
+    music_human_no=Column(String(4),nullable=False,unique=True,index=True)
+    music_name=Column(String(50),nullable=False)
+    music_singer = Column(String(20), nullable=True)
+    music_characteristic = Column(String(20), nullable=True)
+    music_score = Column(Integer, nullable=True)
+    music_group=Column(String(1),nullable=False)
+    #treatment = relationship('Treatment', backref='music')
 
 if __name__=='__main__':
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
+
+    session=SessionClass()
+    session.add(Music(music_human_no='1000', music_name='森林', music_group='0'))
+    session.add(Music(music_human_no='2000', music_name='峡谷', music_group='0'))
+    session.add(Music(music_human_no='3000', music_name='田野', music_group='0'))
+    session.add(Music(music_human_no='4000', music_name='荒岛', music_group='0'))
+    session.add(Music(music_human_no='5000', music_name='星空', music_group='0'))
+    session.add(Music(music_human_no='1001', music_name='春江花月夜', music_group='1'))
+    session.add(Music(music_human_no='2001', music_name='阳春白雪', music_group='1'))
+    session.add(Music(music_human_no='3001', music_name='胡笳十八拍', music_group='1'))
+    session.add(Music(music_human_no='4001', music_name='紫竹调', music_group='1'))
+    session.add(Music(music_human_no='5001', music_name='梅花三弄', music_group='1'))
+    session.commit()
+    session.close()
+

@@ -1,4 +1,4 @@
-from tables import Doctor,Patient,Treatment,Grade,Device,SessionClass
+from tables import Doctor,Patient,Treatment,Grade,Device,Music,SessionClass
 from tools import timeStampToYMD
 
 def getPatientIDDeduplicate(device_mac):
@@ -21,7 +21,6 @@ def getDoctorIDDedulicate(device_mac):
         value_list.append(doctor_id_value[index][0])
     session.close()
     return value_list
-
 
 
 def getSinglePatientInfo(patient_id):
@@ -59,6 +58,25 @@ def getSinglePatientInfo(patient_id):
     session.close()
     return per_patient
 
+#单个病人疗效评估
+def getSinglePatirntGradeLevelChange(patient_id):
+    session = SessionClass()
+    grade_latest = session.query(Grade).order_by(Grade.grade_time.desc()).filter(Grade.patient_id == patient_id).first()
+    grade_oldest = session.query(Grade).order_by(Grade.grade_time).filter(Grade.patient_id == patient_id).first()
+    if grade_latest !=None:
+        difference = grade_oldest.grade_level-grade_latest.grade_level
+        session.close()
+        if grade_latest.grade_score==0:     # 痊愈
+            return 0
+        elif difference >= 2:               # 显效
+            return 1
+        elif difference == 1:               # 有效
+            return 2
+        else:
+            return 3                   # 无效
+
+
+
 #获取所有病人信息
 def getAllPatientsInfo(device_mac):
     patients_id=getPatientIDDeduplicate(device_mac)
@@ -86,6 +104,28 @@ def getTreatmentPatientNumber(device_mac):
     session.close()
     return date_nums
 
+#获取性别占比
+def getGenderPatientProportion(device_mac):
+    session = SessionClass()
+    patients_id = getPatientIDDeduplicate(device_mac)
+    gender_num = [0, 0]
+    gender_name = ['男', '女']
+    type_percent = []
+    for patient_id in patients_id:
+        patient = session.query(Patient).filter(Patient.patient_id == patient_id).first()
+        if patient.patient_gender == 1:    #1为男，2为女
+            gender_num[0] += 1
+        elif patient.patient_gender == 2:
+            gender_num[1] += 1
+    all_nums = sum(gender_num)
+    for i in range(len(gender_num)):
+        counts = {}
+        counts['name'] = gender_name[i]
+        counts['percent'] = round((gender_num[i] / all_nums), 2)
+        counts['a'] = '1'
+        type_percent.append(counts)
+    session.close()
+    return type_percent
 
 #获取每种分型占比
 def getTypePatientProportion(device_mac):
@@ -142,6 +182,8 @@ def getAgePatientProportion(device_mac):
         age_nums.append(per_count)
     return age_nums
 
+
+#获取每个医生的患者数目
 def getPerDoctorPatientNumber(device_mac):
     session=SessionClass()
     doctors_id=getDoctorIDDedulicate(device_mac)
@@ -157,6 +199,46 @@ def getPerDoctorPatientNumber(device_mac):
     return perdoctor_nums
 
 
+#获取每种音乐类型数目
+def getPerMusicNumber():
+    session=SessionClass()
+    permusic_nums=[]
+    music_types_name=['自编乐曲','非自编乐曲','阿是乐']
+    for i in range(3):
+        count={}
+        count['name']=music_types_name[i]
+        count['num']=session.query(Music).filter(Music.music_group==str(i)).count()
+        permusic_nums.append(count)
+    session.close()
+    return permusic_nums
+
+
+#获取整体疗效（痊愈——无耳鸣、显效——降低2个等级及以上，有效——降低1个等级，无效——等级不变化，甚至更糟）
+def getResultAll(device_mac):
+    nums=[0,0,0,0]
+    patients_id = getPatientIDDeduplicate(device_mac)
+    result_name=['痊愈','显效','有效','无效']
+    result_nums=[]
+    for patient_id in patients_id:
+        result=getSinglePatirntGradeLevelChange(patient_id)
+        if result == 0:
+            nums[0]+=1
+        elif result == 1:
+            nums[1] +=1
+        elif result == 2:
+            nums[2] += 1
+        elif result == 3:
+            nums[3] += 1
+    for i in range(4):
+        count={}
+        count['name']=result_name[i]
+        count['nums']=nums[i]
+        result_nums.append(count)
+    return result_nums
+
+
+
+
 
 
 if __name__=='__main__':
@@ -166,5 +248,6 @@ if __name__=='__main__':
     #     print(a['grade_time'])
     # timestamps=getTreatmentPatientNumber('5A:D7:5E:52:2F:6E')
     # print(timestamps)
-    result=getTreatmentPatientNumber('5A:D7:5E:52:2F:6E')
+    result=getGenderPatientProportion('B0:E2:35:96:60:55')
     print(result)
+
