@@ -81,11 +81,12 @@ class Device(Base):
 # class Music(Base):
 #     __tablename__ = 'music'
 #     music_id = Column(Integer, primary_key=True)
-#     music_human_no=Column(Integer,nullable=False,unique=True,index=True)
+#     music_human_no=Column(String(4),nullable=False,unique=True,index=True)
 #     music_name=Column(String(50),nullable=True)
 #     music_singer = Column(String(20), nullable=True)
 #     music_characteristic = Column(String(20), nullable=True)
 #     music_score = Column(Integer, nullable=True)
+#     music_group=Column(String(1),nullable=False)
 #     treatment = relationship('Treatment', backref='music')
 
 if __name__=='__main__':

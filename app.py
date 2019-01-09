@@ -47,13 +47,46 @@ def queryConsultationList():
     except:
         return jsonify({'status':0})
 
-#统计每天就诊人数
+#统计每天治疗人数
 @app.route('/countTreatmentsPatientNumber',methods=['POST'])
 def countTreatmentsPatientNumber():
     device_mac=request.form['device_mac']
     try:
-        date_result=query.getTreatmentPatientNumber(device_mac)
-        return jsonify(date_result)
+        date_nums=query.getTreatmentPatientNumber(device_mac)
+        return jsonify(date_nums)
+    except:
+        return jsonify({'status': 0})
+
+
+#统计第一分型人数占比
+@app.route('/countTypesProportion',methods=['POST'])
+def countTypesProportion():
+    device_mac = request.form['device_mac']
+    try:
+        type_percent = query.getTypePatientProportion(device_mac)
+        return jsonify(type_percent)
+    except:
+        return jsonify({'status': 0})
+
+
+#统计年龄占比
+@app.route('/countAgesProportion',methods=['POST'])
+def countAgesProportion():
+    device_mac = request.form['device_mac']
+    try:
+        age_percent = query.getAgePatientProportion(device_mac)
+        return jsonify(age_percent)
+    except:
+        return jsonify({'status': 0})
+
+
+#统计每位医生的患者数
+@app.route('/countPerDoctorPatientNumber',methods=['POST'])
+def countPerDoctorPatientNumber():
+    device_mac=request.form['device_mac']
+    try:
+        perdoctor_patient_nums=query.getPerDoctorPatientNumber(device_mac)
+        return jsonify(perdoctor_patient_nums)
     except:
         return jsonify({'status': 0})
 

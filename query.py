@@ -12,6 +12,18 @@ def getPatientIDDeduplicate(device_mac):
     return value_list
 
 
+def getDoctorIDDedulicate(device_mac):
+    session = SessionClass()
+    device = session.query(Device).filter(Device.device_mac == device_mac).first()
+    doctor_id_value = session.query(Doctor).filter(Doctor.device_id == device.device_id).with_entities(Doctor.doctor_id).all()
+    value_list = []
+    for index in range(len(doctor_id_value)):
+        value_list.append(doctor_id_value[index][0])
+    session.close()
+    return value_list
+
+
+
 def getSinglePatientInfo(patient_id):
     session=SessionClass()
     patient=session.query(Patient).filter(Patient.patient_id==patient_id).first()
@@ -61,7 +73,7 @@ def getTreatmentPatientNumber(device_mac):
     session=SessionClass()
     patients_id=getPatientIDDeduplicate(device_mac)
     timestamps_string=[]
-    date_result=[]
+    date_nums=[]
     for patient_id in patients_id:
         treatments=session.query(Treatment).filter(Treatment.patient_id==patient_id).all()
         for treatment in treatments:
@@ -69,16 +81,80 @@ def getTreatmentPatientNumber(device_mac):
     for i in set(timestamps_string):
         counts={}
         counts['date']=i
-        counts['steps']=timestamps_string.count(i)
-        date_result.append(counts)
+        counts['nums']=timestamps_string.count(i)
+        date_nums.append(counts)
     session.close()
-    return date_result
+    return date_nums
 
 
-    # for key in timestamps.sort():
-    #     date_result[key]=date_result.get(key,0)+1
-    # return date_result
+#获取每种分型占比
+def getTypePatientProportion(device_mac):
+    session = SessionClass()
+    patients_id = getPatientIDDeduplicate(device_mac)
+    types_num = [0,0,0,0,0]
+    types_name = ['风热侵袭','肝火上扰','痰火郁结','肾精亏损','脾胃虚弱']
+    type_percent = []
+    for patient_id in patients_id:
+        patient = session.query(Patient).filter(Patient.patient_id==patient_id).first()
+        if patient.patient_doctor_category1 == 1:
+            types_num[0] += 1
+        elif patient.patient_doctor_category1==2:
+            types_num[1] += 1
+        elif patient.patient_doctor_category1==3:
+            types_num[2] += 1
+        elif patient.patient_doctor_category1==4:
+            types_num[3] += 1
+        elif patient.patient_doctor_category1==5:
+            types_num[4] += 1
+    all_nums=sum(types_num)
+    for i in range(len(types_num)):
+        counts = {}
+        counts['name'] = types_name[i]
+        counts['percent'] = round((types_num[i]/all_nums),2)
+        counts['a']='1'
+        type_percent.append(counts)
+    session.close()
+    return type_percent
 
+
+#获取每个年龄段人数 小于等于18、大于18小于等于44、大于44小于等于60、大于60
+def getAgePatientProportion(device_mac):
+    session = SessionClass()
+    patients_id = getPatientIDDeduplicate(device_mac)
+    age_stages = [0,0,0,0]
+    age_stages_name=['18岁以下','18岁-44岁','44岁-60岁','60岁以上']
+    age_nums=[]
+    for patient_id in patients_id:
+        patient = session.query(Patient).filter(Patient.patient_id == patient_id).first()
+        if patient.patient_age <= 18:
+            age_stages[0] += 1
+        elif (patient.patient_age > 18) and (patient.patient_age<=44):
+            age_stages[1]+=1
+        elif (patient.patient_age > 44) and (patient.patient_age <= 60):
+            age_stages[2] += 1
+        elif patient.patient_age > 60:
+            age_stages[3] += 1
+    for i in range(len(age_stages)):
+        per_count = {}
+        per_count['name'] = age_stages_name[i]
+        per_count['percent'] = round((age_stages[i]/sum(age_stages)),2)
+        per_count['a']='1'
+        age_nums.append(per_count)
+    return age_nums
+
+def getPerDoctorPatientNumber(device_mac):
+    session=SessionClass()
+    doctors_id=getDoctorIDDedulicate(device_mac)
+    perdoctor_nums=[]
+    for doctor_id in doctors_id:
+        counts={}
+        doctor=session.query(Doctor).filter(Doctor.doctor_id==doctor_id).first()
+        patient_count=session.query(Patient).filter(Patient.doctor_id==doctor_id).count()
+        counts['name']=doctor.doctor_name
+        counts['num']=patient_count
+        perdoctor_nums.append(counts)
+    session.close()
+    return perdoctor_nums
 
 
 
