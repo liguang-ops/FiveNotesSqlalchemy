@@ -1,10 +1,14 @@
 from tables import Doctor,Patient,Treatment,Grade,Device,Music,SessionClass
-from tools import timeStampToYMD
+from tools import timeStampToYMD, patientInfo2List, treatmentInfo2List, gradeInfo2List,writeRowExcel
+import time, xlsxwriter
 
-def getPatientIDDeduplicate(device_mac):
+def getPatientIDDeduplicate(device_mac,*args):
     session = SessionClass()
     device=session.query(Device).filter(Device.device_mac==device_mac).first()
-    patient_id_value=session.query(Patient).filter(Patient.device_id==device.device_id).with_entities(Patient.patient_id).all()
+    if len(args)==0:
+        patient_id_value=session.query(Patient).filter(Patient.device_id==device.device_id).with_entities(Patient.patient_id).all()
+    else:
+        patient_id_value = session.query(Patient).filter(Patient.device_id == device.device_id, Patient.patient_name==args[0]).with_entities(Patient.patient_id).all()
     value_list=[]
     for index in range(len(patient_id_value)):
         value_list.append(patient_id_value[index][0])
@@ -75,8 +79,6 @@ def getSinglePatirntGradeLevelChange(patient_id):
         else:
             return 3                   # 无效
 
-
-
 #获取所有病人信息
 def getAllPatientsInfo(device_mac):
     patients_id=getPatientIDDeduplicate(device_mac)
@@ -84,7 +86,7 @@ def getAllPatientsInfo(device_mac):
     for id in patients_id:
         patients_info.append(getSinglePatientInfo(id))
     patients_info.sort(key=lambda patient: -patient['grade_time'])
-    return {'patients_info':patients_info}
+    return patients_info
 
 #获取每天治疗人数
 def getTreatmentPatientNumber(device_mac):
@@ -237,9 +239,102 @@ def getResultAll(device_mac):
     return result_nums
 
 
+#单个病人信息转换成excel
+def singlePatientToExcel(patient_id):
+    session=SessionClass()
+
+    patient_col_name = ['编号','姓名','性别','年龄','主诉','既往史','检查','设备分型','医生第一分型','医生第二分型','医生姓名']
+    treatment_col_name = ['编号','治疗时间','患者编号']
+    grade_col_name =['编号','等级','分数','评分时间','患者编号']
+
+    now_time = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+    filename = 'singlePatient_'+ now_time + '.xlsx'
+    workbook_filepath = 'E:/NewMyGitProjects/FiveNotesSqlalchemy/emailData/' + filename
+
+    with xlsxwriter.Workbook(workbook_filepath) as workbook:
+        worksheet_patient = workbook.add_worksheet('患者信息')
+        writeRowExcel(0, patient_col_name, worksheet_patient)
+        worksheet_treatment=workbook.add_worksheet('治疗信息')
+        writeRowExcel(0, treatment_col_name, worksheet_treatment)
+        worksheet_grade=workbook.add_worksheet('评分信息')
+        writeRowExcel(0, grade_col_name, worksheet_grade)
+
+        patient = session.query(Patient).filter(Patient.patient_id == patient_id).first()
+        doctor = session.query(Doctor).filter(Doctor.doctor_id == patient.doctor_id).first()
+        treatments = session.query(Treatment).filter(Treatment.patient_id == patient_id).all()
+        grades = session.query(Grade).filter(Grade.patient_id == patient_id).all()
+
+        #患者信息sheet表
+        patient_info = patientInfo2List(patient, doctor)
+        writeRowExcel(1, patient_info, worksheet_patient)
+
+        #治疗信息sheet表
+        for i in range(len(treatments)):
+            treatment_info=treatmentInfo2List(treatments[i])
+            writeRowExcel(i+1,treatment_info,worksheet_treatment)
+
+        # 评分信息sheet表
+        for i in range(len(grades)):
+            grade_info=gradeInfo2List(grades[i])
+            writeRowExcel(i+1,grade_info,worksheet_grade)
+        session.close()
+    return filename, workbook_filepath
+
+#多个病人信息转换成excel,传入为patient_id list
+def allPatientToExcel(device_mac):
+    patients_id=getPatientIDDeduplicate(device_mac)
+    session = SessionClass()
+    patient_col_name = ['编号', '姓名', '性别', '年龄', '主诉', '既往史', '检查', '设备分型', '医生第一分型', '医生第二分型', '医生姓名']
+    treatment_col_name = ['编号', '治疗时间','患者编号']
+    grade_col_name = ['编号', '等级', '分数', '评分时间','患者编号']
+
+    now_time = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+    filename = 'allPatients_' + now_time + '.xlsx'
+    workbook_filepath ='E:/NewMyGitProjects/FiveNotesSqlalchemy/emailData/' + filename
+
+    with xlsxwriter.Workbook(workbook_filepath) as workbook:
+        worksheet_patient = workbook.add_worksheet('患者信息')          # 创建患者信息sheet表
+        worksheet_treatment = workbook.add_worksheet('治疗信息')        # 创建治疗信息sheet表
+        worksheet_grade = workbook.add_worksheet('评分信息')            # 创建评分信息sheet表
+        writeRowExcel(0, patient_col_name, worksheet_patient)
+        writeRowExcel(0, treatment_col_name, worksheet_treatment)
+        writeRowExcel(0, grade_col_name, worksheet_grade)
+        len_treatment = 0
+        len_grade = 0
+        for index in range(len(patients_id)):
+            #从数据库获取单个患者数据
+            patient = session.query(Patient).filter(Patient.patient_id == patients_id[index]).first()
+            doctor = session.query(Doctor).filter(Doctor.doctor_id == patient.doctor_id).first()
+            treatments = session.query(Treatment).filter(Treatment.patient_id == patients_id[index]).all()
+            grades = session.query(Grade).filter(Grade.patient_id == patients_id[index]).all()
+
+            #填充患者信息表
+            patient_info = patientInfo2List(patient, doctor)
+            writeRowExcel(index + 1, patient_info, worksheet_patient)
+
+            # 填充治疗信息表
+            for i in range(len(treatments)):
+                treatment_info = treatmentInfo2List(treatments[i])
+                writeRowExcel(len_treatment + i + 1, treatment_info, worksheet_treatment)
+            len_treatment += len(treatments)
+
+            # 填充评分信息表
+            for i in range(len(grades)):
+                grade_info = gradeInfo2List(grades[i])
+                writeRowExcel(len_grade + i + 1, grade_info, worksheet_grade)
+            len_grade += len(grades)
+        session.close()
+    return filename,workbook_filepath
 
 
-
+#根据患者姓名和设备mac查询
+def getPatientInfoDependName(device_mac,patient_name):
+    patients_id = getPatientIDDeduplicate(device_mac,patient_name)
+    patients_info = []
+    for id in patients_id:
+        patients_info.append(getSinglePatientInfo(id))
+    patients_info.sort(key=lambda patient: -patient['grade_time'])
+    return patients_info
 
 if __name__=='__main__':
     # patients_info=getAllPatientsInfo('63:8D:56:86:A1:6B')
@@ -248,6 +343,9 @@ if __name__=='__main__':
     #     print(a['grade_time'])
     # timestamps=getTreatmentPatientNumber('5A:D7:5E:52:2F:6E')
     # print(timestamps)
-    result=getGenderPatientProportion('B0:E2:35:96:60:55')
+
+    result=getPatientInfoDependName('B0:E2:35:96:60:55','考拉')
     print(result)
+
+
 

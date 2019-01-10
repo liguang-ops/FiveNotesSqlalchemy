@@ -57,9 +57,25 @@ def queryConsultationList():
     device_mac = request.form['device_mac']
     try:
         patients_info = query.getAllPatientsInfo(device_mac)
-        return jsonify(patients_info)
+        return jsonify({'patients_info':patients_info,'status':1})
     except:
         return jsonify({'status':0})
+
+#获取指定姓名的患者信息
+@app.route('/querySearchConsultationList',methods=['POST'])
+def querySearchConsultationList():
+    device_mac = request.form['device_mac']
+    search_name=request.form['search_name']
+    print('device_mac',device_mac)
+    print('search_name',search_name)
+    try:
+        patients_info = query.getPatientInfoDependName(device_mac,search_name)
+        print(patients_info)
+        return jsonify({'patients_info':patients_info,'status':1})
+    except:
+        return jsonify({'status':0})
+
+
 
 #统计每天治疗人数
 @app.route('/countTreatmentsPatientNumber',methods=['POST'])
@@ -144,16 +160,40 @@ def countResultAll():
 # def downloadSingleData():
 #     patient_id=request.form['patient_id']
 
-#发送邮件
-#@app.route('/sendMail',methods=['POST'])
-def downloadSingleData():
+#发送单条信息邮件
+@app.route('/sendMailSingle',methods=['POST'])
+def sendMailSingle():
     patient_id=request.form['patient_id']
-    msg = Message("Hi!This is a test ", sender='275959399@qq.com', recipients=['18019507168@163.com'])
-    msg.body = "This is a first email"      # msg.body 邮件正文
-    with app.open_resource("C:\\Users\\27595\\Desktop\\test.xlsx") as fp:
-        msg.attach("test.xlsx", "text/xlsx", fp.read())                          # msg.attach 邮件附件添加,msg.attach("文件名", "类型", 读取文件）
-    mail.send(msg)
-    return jsonify({'status':1})
+    recipient_mail = request.form['recipient_mail']  # 需要为list类型
+    filename, workbook_filepath=query.singlePatientToExcel(patient_id)
+    msg = Message("嗨，这是单条数据 ", sender='275959399@qq.com', recipients=[recipient_mail])
+    msg.body = "单条数据"      # msg.body 邮件正文
+    with app.open_resource(workbook_filepath) as fp:
+        msg.attach(filename, "text/xlsx", fp.read())                          # msg.attach 邮件附件添加,msg.attach("文件名", "类型", 读取文件）
+    try:
+        mail.send(msg)
+        return jsonify({'status':1})
+    except:
+        return jsonify({'status':0})
+
+
+#发送所有信息邮件
+@app.route('/sendMailAll',methods=['POST'])
+def sendMailAll():
+    device_mac=request.form['device_mac']
+    recipient_mail=request.form['recipient_mail']   #需要为list类型
+    print('patient_id',device_mac)
+    print('recipient_mail',recipient_mail)
+    filename,filepath = query.allPatientToExcel(device_mac)
+    msg = Message("嗨，这是所有数据 ", sender='275959399@qq.com', recipients=[recipient_mail])
+    msg.body = "所有数据"      # msg.body 邮件正文
+    with app.open_resource(filepath) as fp:
+        msg.attach(filename, "text/xlsx", fp.read())                          # msg.attach 邮件附件添加,msg.attach("文件名", "类型", 读取文件）
+    try:
+        mail.send(msg)
+        return jsonify({'status':1})
+    except:
+        return jsonify({'status':0})
 
 
 if __name__=='__main__':
