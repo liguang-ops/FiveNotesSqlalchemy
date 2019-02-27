@@ -336,6 +336,16 @@ def getPatientInfoDependName(device_mac,patient_name):
     patients_info.sort(key=lambda patient: -patient['grade_time'])
     return patients_info
 
+#根据device_mac查询设备是否存在
+def getDevice(device_mac):
+    session = SessionClass()
+    device = session.query(Device).filter(Device.device_mac == device_mac).first()
+    session.close()
+    if device == None:
+        return None
+    else:
+        return device
+
 if __name__=='__main__':
     # patients_info=getAllPatientsInfo('63:8D:56:86:A1:6B')
     # print(patients_info)
@@ -344,8 +354,7 @@ if __name__=='__main__':
     # timestamps=getTreatmentPatientNumber('5A:D7:5E:52:2F:6E')
     # print(timestamps)
 
-    result=getPatientInfoDependName('B0:E2:35:96:60:55','考拉')
-    print(result)
+    print(getDevice('hn'))
 
 
 

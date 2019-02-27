@@ -1,6 +1,6 @@
 from flask import Flask,request,jsonify
 from flask_mail import Message,Mail
-import insert,ast,query
+import insert,ast,query,json
 
 app=Flask(__name__)
 
@@ -27,6 +27,15 @@ def addDevice():
     else:
         return jsonify({'status':0})
 
+#查询设备
+@app.route('/queryDevice',methods=['POST'])
+def queryDevice():
+    device_mac = request.form['device_mac']
+    result = query.getDevice(device_mac)
+    if result !=None:
+        return jsonify({'status':1})
+    else:
+        return jsonify({'status':0})
 
 
 #同步设备端所有病人信息至云端
@@ -194,6 +203,14 @@ def sendMailAll():
         return jsonify({'status':1})
     except:
         return jsonify({'status':0})
+
+@app.route('/test',methods=['POST'])
+def test():
+    data=request.get_json()
+    data_json=json.loads(data)
+    print(data)
+    print(data_json['device_mac'])
+    return jsonify({'status':1})
 
 
 if __name__=='__main__':
