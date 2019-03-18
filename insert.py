@@ -1,4 +1,5 @@
-from tables import Doctor,Patient,Treatment,Grade,Device,SessionClass
+from tables import Doctor,Patient,Treatment,Grade,Device,SessionClass, Music
+from tools import getTimeStamp
 import ast
 
 
@@ -119,10 +120,11 @@ def insertTreatments(treatments,patient_id):
     session = SessionClass()
     if (treatments != None):
         treatment_count = session.query(Treatment).filter(Treatment.patient_id == patient_id).count()
-        if (treatment_count <= 100):
+        if (treatment_count <= 1000):
             for treatment in treatments:
-                #session.add(Treatment(treatment_time=treatment['ts'],patient_id=patient_id,music_id=treatment['music']))
-                session.add(Treatment(treatment_time=treatment['ts'], patient_id=patient_id))
+                music = session.query(Music).filter(Music.music_human_no_and_group == treatment['musicNum']).first()
+                session.add(Treatment(treatment_time=treatment['ts'],patient_id=patient_id,music_id=music.music_id))
+                #session.add(Treatment(treatment_time=treatment['ts'], patient_id=patient_id))
                 session.commit()
         session.close()
     return
@@ -135,7 +137,7 @@ def insertGrades(grades,patient_id):
     session = SessionClass()
     if (grades != None):
         grade_count = session.query(Grade).order_by(Grade.grade_time.desc()).filter(Grade.patient_id == patient_id).count()
-        if (grade_count <= 100):
+        if (grade_count <= 1000):
             for grade in grades:
                 session.add(Grade(grade_level=grade['grade'], grade_score=grade['score'], grade_time=grade['ts'],
                                      patient_id=patient_id))
@@ -144,11 +146,52 @@ def insertGrades(grades,patient_id):
     return
 
 
+#@ brief 插入音乐信息
+#@ param  (filename,file_type) (文件名,音乐类型）（string,string）
+#@ return  类型+编号（四位string)(表内字段）
+def insertAndUpdateMusic(filename, file_type):
+    session = SessionClass()
+    music = session.query(Music).filter(Music.music_name == filename).first()
+    if music == None:
+        cur_max_human_no_music = session.query(Music).filter(Music.music_group == file_type).order_by(Music.music_human_no.desc()).first()
+        music_human_no = str(int(cur_max_human_no_music.music_human_no) + 1).zfill(3)
+
+        music_new = Music()
+        music_new.music_name = filename
+        music_new.music_human_no = music_human_no
+        music_new.music_group = file_type
+        music_new.music_human_no_and_group = music_human_no + file_type
+        music_new.music_insert_time = getTimeStamp()
+        try:
+            session.add(music_new)
+            session.flush()
+            music_human_no_and_group = music_new.music_human_no_and_group
+            session.commit()
+            session.close()
+            return music_human_no_and_group
+        except:
+            session.rollback()
+            return None
+    else:
+
+        music_human_no_and_group = music.music_human_no_and_group
+        session.commit()
+        session.close()
+        return music_human_no_and_group
+
+
+
 if __name__=='__main__':
-    data = "[{'age': 56, 'treats': [{'ts': 1542097122}], 'doctor': '张大伟', 'history': '舌淡红，苔薄白', 'cate': 3, 'inspect': '声阻抗正常，鼓膜正常', 'gender': 1, 'name': '张三', 'report': '右耳耳鸣1年', 'grades': [{'ts': 1542097122, 'score': 12, 'grade': 3}]}, {'age': 42, 'treats': [{'ts': 1542097122}, {'ts': 1542097122}], 'doctor': '王小燕', 'cate': 4, 'gender': 2, 'name': '李四'}, {'age': 42, 'cate': 2, 'gender': 1, 'doctor': '张大伟', 'name': '王五'}, {'age': 36, 'cate': 1, 'gender': 1, 'doctor': '王小燕', 'name': '张全蛋'}]"
+    insertDevice({'device_mac': '123456'})
+    #data = "[{'age': 56, 'treats': [{'ts': 1542097122}], 'doctor': '张大伟', 'history': '舌淡红，苔薄白', 'cate': 3, 'inspect': '声阻抗正常，鼓膜正常', 'gender': 1, 'name': '张三', 'report': '右耳耳鸣1年', 'grades': [{'ts': 1542097122, 'score': 12, 'grade': 3}]}, {'age': 42, 'treats': [{'ts': 1542097122}, {'ts': 1542097122}], 'doctor': '王小燕', 'cate': 4, 'gender': 2, 'name': '李四'}, {'age': 42, 'cate': 2, 'gender': 1, 'doctor': '张大伟', 'name': '王五'}, {'age': 36, 'cate': 1, 'gender': 1, 'doctor': '王小燕', 'name': '张全蛋'}]"
+    data = "[{'cate': 3, 'grade': [{'grade': 3, 'score': 12, 'ts': 1551948932}], 'history': '舌淡红，苔薄白', 'treat': [{'ts': 1551948932, 'musicNum': '3000'}], 'gender': 1, 'name': '张三', 'inspect': '声阻抗正常，鼓膜正常', 'age': 56, 'report': '右耳耳鸣1年', 'doctor': '张大伟'}, " \
+           "{'cate': 4, 'treat': [{'ts': 1551948932, 'musicNum': '4000'}, {'ts': 1551948932, 'musicNum': '4000'}], 'gender': 2, 'name': '李四', 'age': 42, 'doctor': '王小燕'}, " \
+           "{'cate': 2, 'doctor': '张大伟', 'name': '王五', 'gender': 1, 'age': 42}, " \
+           "{'cate': 1, 'doctor': '王小燕', 'name': '张全蛋', 'gender': 1, 'age': 36}]"
     patients = ast.literal_eval(data)
     for patientInfo in patients:
-        patientid=insertPatient(patientInfo=patientInfo,device_mac='43:72:DE:A8:5C:20')
-        insertTreatments(patientInfo.get('treats',None),patientid)
-        insertGrades(patientInfo.get('grades',None),patientid)
+        patientid=insertPatient(patientInfo=patientInfo,device_mac='123456')
+        insertTreatments(patientInfo.get('treat',None),patientid)
+        insertGrades(patientInfo.get('grade',None),patientid)
+
 

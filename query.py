@@ -205,11 +205,11 @@ def getPerDoctorPatientNumber(device_mac):
 def getPerMusicNumber():
     session=SessionClass()
     permusic_nums=[]
-    music_types_name=['自编乐曲','非自编乐曲','阿是乐']
-    for i in range(3):
+    music_types_name=['宫','商','角', '徵','羽','阿是乐']
+    for i in range(6):
         count={}
         count['name']=music_types_name[i]
-        count['num']=session.query(Music).filter(Music.music_group==str(i)).count()
+        count['num']=session.query(Music).filter(Music.music_group==str(i+1)).count()
         permusic_nums.append(count)
     session.close()
     return permusic_nums
@@ -285,7 +285,7 @@ def allPatientToExcel(device_mac):
     patients_id=getPatientIDDeduplicate(device_mac)
     session = SessionClass()
     patient_col_name = ['编号', '姓名', '性别', '年龄', '主诉', '既往史', '检查', '设备分型', '医生第一分型', '医生第二分型', '医生姓名']
-    treatment_col_name = ['编号', '治疗时间','患者编号']
+    treatment_col_name = ['编号', '治疗时间','患者编号','音乐编号']
     grade_col_name = ['编号', '等级', '分数', '评分时间','患者编号']
 
     now_time = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
@@ -346,6 +346,32 @@ def getDevice(device_mac):
     else:
         return device
 
+
+#查询所有音乐信息，返回字段音乐名，编号和时间戳
+def getAllMusicInfo():
+    session = SessionClass()
+    musics_info = []
+    musics = session.query(Music).all()
+    for music in musics:
+        per_music_info ={}
+        per_music_info['music_name'] = music.music_name
+        per_music_info['music_no'] = music.music_human_no_and_group
+        per_music_info['music_group'] = music.music_group
+        per_music_info['timestamp'] = music.music_insert_time
+        musics_info.append(per_music_info)
+    session.close()
+    return musics_info
+
+
+#查询大于某一插入时间的音乐文件名
+def getCertainMusic(time):
+    session = SessionClass()
+    musics = session.query(Music).filter(Music.music_insert_time > time).all()
+    a = []
+    for music in musics:
+        a.append(music.music_human_no_and_group + '.' +'mp3')
+    return a
+
 if __name__=='__main__':
     # patients_info=getAllPatientsInfo('63:8D:56:86:A1:6B')
     # print(patients_info)
@@ -353,8 +379,9 @@ if __name__=='__main__':
     #     print(a['grade_time'])
     # timestamps=getTreatmentPatientNumber('5A:D7:5E:52:2F:6E')
     # print(timestamps)
-
-    print(getDevice('hn'))
-
+    # a = getPerMusicNumber()
+    # print(a)
+    a = getCertainMusic(1552527627)
+    print(a)
 
 

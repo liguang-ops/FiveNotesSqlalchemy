@@ -53,7 +53,7 @@ class Treatment(Base):
     treatment_id = Column(Integer, primary_key=True)
     treatment_time = Column(Integer, nullable=False)
     patient_id = Column(Integer, ForeignKey('patient.patient_id'), nullable=False)
-    #music_id=Column(Integer,ForeignKey('music.music_id'),nullable=False)
+    music_id=Column(Integer,ForeignKey('music.music_id'),nullable=False)
 
 
 # 定义grade表
@@ -81,29 +81,33 @@ class Device(Base):
 class Music(Base):
     __tablename__ = 'music'
     music_id = Column(Integer, primary_key=True)
-    music_human_no=Column(String(4),nullable=False,unique=True,index=True)
+    music_human_no=Column(String(3),nullable=False)
+    #music_human_no = Column(Integer, nullable=False, unique=True, index=True)
     music_name=Column(String(50),nullable=False)
     music_singer = Column(String(20), nullable=True)
     music_characteristic = Column(String(20), nullable=True)
     music_score = Column(Integer, nullable=True)
     music_group=Column(String(1),nullable=False)
-    #treatment = relationship('Treatment', backref='music')
+    music_human_no_and_group=Column(String(4),nullable=False)
+    music_insert_time = Column(Integer, nullable=True)
+    treatment = relationship('Treatment', backref='music')
 
 if __name__=='__main__':
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     session=SessionClass()
-    session.add(Music(music_human_no='1000', music_name='森林', music_group='0'))
-    session.add(Music(music_human_no='2000', music_name='峡谷', music_group='0'))
-    session.add(Music(music_human_no='3000', music_name='田野', music_group='0'))
-    session.add(Music(music_human_no='4000', music_name='荒岛', music_group='0'))
-    session.add(Music(music_human_no='5000', music_name='星空', music_group='0'))
-    session.add(Music(music_human_no='1001', music_name='春江花月夜', music_group='1'))
-    session.add(Music(music_human_no='2001', music_name='阳春白雪', music_group='1'))
-    session.add(Music(music_human_no='3001', music_name='胡笳十八拍', music_group='1'))
-    session.add(Music(music_human_no='4001', music_name='紫竹调', music_group='1'))
-    session.add(Music(music_human_no='5001', music_name='梅花三弄', music_group='1'))
+    session.add(Music(music_human_no='000', music_name='森林', music_group='1', music_insert_time=1552527627, music_human_no_and_group='1000'))
+    session.add(Music(music_human_no='000', music_name='峡谷', music_group='2', music_insert_time=1552527627, music_human_no_and_group='2000'))
+    session.add(Music(music_human_no='000', music_name='田野', music_group='3', music_insert_time=1552527627, music_human_no_and_group='3000'))
+    session.add(Music(music_human_no='000', music_name='荒岛', music_group='4', music_insert_time=1552527627, music_human_no_and_group='4000'))
+    session.add(Music(music_human_no='000', music_name='星空', music_group='5', music_insert_time=1552527627, music_human_no_and_group='5000'))
+    session.add(Music(music_human_no='001', music_name='春江花月夜', music_group='1', music_insert_time=1552527627, music_human_no_and_group='1001'))
+    session.add(Music(music_human_no='001', music_name='阳春白雪', music_group='2', music_insert_time=1552527627, music_human_no_and_group='2001'))
+    session.add(Music(music_human_no='001', music_name='胡笳十八拍', music_group='3', music_insert_time=1552527627, music_human_no_and_group='3001'))
+    session.add(Music(music_human_no='001', music_name='紫竹调', music_group='4', music_insert_time=1552527627, music_human_no_and_group='4001'))
+    session.add(Music(music_human_no='001', music_name='梅花三弄', music_group='5', music_insert_time=1552527627, music_human_no_and_group='5001'))
+    session.add(Music(music_human_no='000', music_name='青花瓷', music_group='6', music_insert_time=1552527627,music_human_no_and_group='6000'))
     session.commit()
     session.close()
 

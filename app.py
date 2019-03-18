@@ -1,9 +1,14 @@
-from flask import Flask,request,jsonify
+from flask import Flask,request,jsonify,send_from_directory
 from flask_mail import Message,Mail
-import insert,ast,query,json
+import insert,ast,query,json,update,tools
+import os
+from tools import mapGender,mapType
+
+
+UPLOAD_FOLDER = 'E:\\NewMyGitProjects\\FiveNotesSqlalchemy\\mp3Files'
+ALLOWED_EXTENSIONS = set(['mp3'])
 
 app=Flask(__name__)
-
 app.config.update(
     DEBUG = True,
     MAIL_SERVER='smtp.qq.com',
@@ -16,6 +21,10 @@ app.config.update(
 )
 
 mail=Mail(app)
+
+# 判断文件是否合法
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 #插入设备信息
 @app.route('/addDevice',methods=['POST'])
@@ -41,18 +50,24 @@ def queryDevice():
 #同步设备端所有病人信息至云端
 @app.route('/syncAllPatientsInfo',methods=['POST'])
 def syncAllPatientsInfo():
-    data = request.form['patients']
-    device_mac = request.form['device_mac']
-    if data!='':
-        patients=ast.literal_eval(data)
+    # data = request.form['patients']
+    # device_mac = request.form['device_mac']
+    data_string = request.get_json()
+    print('data_string',data_string)
+    data = json.loads(data_string)
+    print('data',data)
+    device_mac = data['device_mac']
+    device_id = insert.insertDevice({'device_mac': device_mac})
+    if device_id != None:
+        patients=data['patients']
         try:
             for patient in patients:
                 doctor_id=insert.insertDoctor(patient['doctor'],device_mac)
                 if doctor_id != None:
                     patient_id=insert.insertPatient(patient,device_mac)
                     if patient_id !=None:
-                        insert.insertTreatments(patient.get('treats',None),patient_id)
-                        insert.insertGrades(patient.get('grades',None),patient_id)
+                        insert.insertTreatments(patient.get('treat',None),patient_id)
+                        insert.insertGrades(patient.get('grade',None),patient_id)
             return jsonify({'status':1})
         except:
             return jsonify({'status':0})
@@ -63,6 +78,20 @@ def syncAllPatientsInfo():
 #获取所有患者信息
 @app.route('/queryConsultationList',methods=['POST'])
 def queryConsultationList():
+    data_json = request.get_json()
+    data = json.loads(data_json)
+    device_mac = data['device_mac']
+    print('device_mac',device_mac)
+    try:
+        patients_info = query.getAllPatientsInfo(device_mac)
+        print('patient_info',patients_info)
+        return jsonify({'patients_info':patients_info})
+    except:
+        return jsonify({'status':0})
+
+#小程序获取所有患者信息
+@app.route('/queryConsultationListWeixin',methods=['POST'])
+def queryConsultationListWeixin():
     device_mac = request.form['device_mac']
     try:
         patients_info = query.getAllPatientsInfo(device_mac)
@@ -204,13 +233,87 @@ def sendMailAll():
     except:
         return jsonify({'status':0})
 
+#更新单条病人信息
+@app.route('/updatePatientInfo',methods=['POST'])
+def updatePatientInfo():
+    device_mac = request.form['device_mac']
+    patient_name = request.form['patient_name']
+    patient_age = request.form['patient_age']
+    patient_gender = request.form['patient_gender']
+    patient_doctor_category1 = request.form['patient_doctor_category1']
+    patient_doctor_category2 = request.form['patient_doctor_category2']
+    patient_self_reported = request.form['patient_self_reported']
+    patient_medical_history = request.form['patient_medical_history']
+    patient_examination = request.form['patient_examination']
+    if patient_doctor_category2 == 'null':
+        patient_info = {'patient_name':patient_name, 'patient_age':patient_age, 'patient_gender':int(patient_gender),
+                        'patient_doctor_category1':int(patient_doctor_category1), 'patient_doctor_category2':None,
+                        'patient_self_reported':patient_self_reported, 'patient_medical_history':patient_medical_history,
+                        'patient_examination':patient_examination}
+    else:
+        patient_info = {'patient_name': patient_name, 'patient_age': patient_age, 'patient_gender': int(patient_gender),
+                        'patient_doctor_category1': int(patient_doctor_category1),
+                        'patient_doctor_category2': int(patient_doctor_category2),
+                        'patient_self_reported': patient_self_reported,
+                        'patient_medical_history': patient_medical_history,
+                        'patient_examination': patient_examination}
+    a = update.updatePerPatient(patient_info,device_mac)
+    if a == 1:
+        return jsonify({'status':1})
+    else:
+        return jsonify({'status':0})
+
+#上传mp3文件
+@app.route('/uploadMusicFile',methods=['POST'])
+def uploadMusicFile():
+    music_file = request.files['file']
+    music_type = request.form['type']
+    if music_file and allowed_file(music_file.filename):
+        file_name = music_file.filename
+        previous_file_path = os.path.join(UPLOAD_FOLDER, file_name)
+        music_file.save(previous_file_path)
+        human_no_type_res = insert.insertAndUpdateMusic(file_name, music_type)
+        if human_no_type_res != None:
+            suffix = file_name.rsplit('.',1)[1]
+            new_file_name = human_no_type_res + '.'+suffix
+            new_file_path = os.path.join(UPLOAD_FOLDER,new_file_name)
+            if os.path.isfile(new_file_path):
+                os.remove(new_file_path)
+            os.rename(previous_file_path, new_file_path)
+            return jsonify({'status': 1})
+        else:
+            return jsonify({'status': 0})
+
+    #文件没有上传成功
+    else:
+        return jsonify({'status':0})
+
+
+#返回所有音乐信息
+@app.route('/queryAllMusic',methods=['POST'])
+def queryAllMusic():
+    musics_info = query.getAllMusicInfo()
+    return musics_info
+
+#下载指定音乐
+@app.route('/downloadCertainMusic',methods=['POST'])
+def downloadCertainMusic():
+    data_json = request.get_json()
+    data = json.loads(data_json)
+    time = data['time']
+    music_names = query.getCertainMusic(time)
+    target_filepath, filename = tools.getZipfile(music_names)
+    return send_from_directory(target_filepath, filename, as_attachment=True)
+
+
+
 @app.route('/test',methods=['POST'])
 def test():
-    data=request.get_json()
-    data_json=json.loads(data)
-    print(data)
-    print(data_json['device_mac'])
+    name = request.form['user_name']
+    pwd = request.form['user_pwd']
+    print(name,':',pwd)
     return jsonify({'status':1})
+
 
 
 if __name__=='__main__':
