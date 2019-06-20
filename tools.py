@@ -116,7 +116,7 @@ def writeRowExcel(row,data,worksheet):
         worksheet.write(row,col,data[col])
 
 
-def getZipfile(source_file_names, source_filepath='E:\\NewMyGitProjects\\FiveNotesSqlalchemy\\mp3Files', target_filepath='E:\\NewMyGitProjects\\FiveNotesSqlalchemy\\mp3ZipFiles',):
+def getZipfile(source_file_names, source_filepath='E:\\mp3Files', target_filepath='E:\\mp3ZipFiles',):
     now_time = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
     file_name = now_time + '.zip'
     new_target_filepath = os.path.join(target_filepath, file_name)

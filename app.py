@@ -296,23 +296,23 @@ def queryAllMusic():
     return musics_info
 
 #下载指定音乐
-@app.route('/downloadCertainMusic',methods=['POST'])
+@app.route('/downloadCertainMusic',methods=['POST','GET'])
 def downloadCertainMusic():
-    data_json = request.get_json()
-    data = json.loads(data_json)
-    time = data['time']
-    music_names = query.getCertainMusic(time)
-    target_filepath, filename = tools.getZipfile(music_names)
-    return send_from_directory(target_filepath, filename, as_attachment=True)
+    # data_json = request.get_json()
+    # print('data',data_json)
+    # data = json.loads(data_json)
+    # time = data['time']
+    # music_names = query.getCertainMusic(time)
+    #target_filepath, filename = tools.getZipfile(music_names)
+    # return send_from_directory(target_filepath, filename, as_attachment=True)
+    return send_from_directory('E:\\mp3ZipFiles', '20190327102507.zip',
+                               as_attachment=True)
 
 
 
-@app.route('/test',methods=['POST'])
+@app.route('/test',methods=['POST','GET'])
 def test():
-    name = request.form['user_name']
-    pwd = request.form['user_pwd']
-    print(name,':',pwd)
-    return jsonify({'status':1})
+    return send_from_directory('E:\\NewMyGitProjects\\FiveNotesSqlalchemy\\mp3Files','0021.mp3', as_attachment=True)
 
 
 
