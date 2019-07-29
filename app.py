@@ -50,18 +50,15 @@ def queryDevice():
 #同步设备端所有病人信息至云端
 @app.route('/syncAllPatientsInfo',methods=['POST'])
 def syncAllPatientsInfo():
-    # data = request.form['patients']
-    # device_mac = request.form['device_mac']
-    data_string = request.get_json()
-    print('data_string',data_string)
-    data = json.loads(data_string)
-    print('data',data)
-    device_mac = data['device_mac']
+    patients = request.form['patients']
+    device_mac = request.form['device_mac']
+    # data_string = request.get_json()
+    # data = json.loads(data_string)
+    # device_mac = data['device_mac']
     device_id = insert.insertDevice({'device_mac': device_mac})
     if device_id != None:
-        patients=data['patients']
         try:
-            for patient in patients:
+            for patient in ast.literal_eval(patients):
                 doctor_id=insert.insertDoctor(patient['doctor'],device_mac)
                 if doctor_id != None:
                     patient_id=insert.insertPatient(patient,device_mac)
