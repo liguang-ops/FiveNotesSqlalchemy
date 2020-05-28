@@ -139,8 +139,8 @@ if __name__=='__main__':
     #     worksheet_patient=workbook.add_worksheet('患者信息')
     #     data=['患者编号','患者姓名','患者性别']
     #     writeRowExcel(0,data,worksheet_patient)
-    file_names = ['0021.mp3', '0031.mp3', '0041.mp3']
-    getZipfile(file_names)
+    music_names = ["0021.mp3"]
+    getZipfile(music_names)
 
 
 

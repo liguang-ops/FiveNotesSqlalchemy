@@ -289,8 +289,10 @@ def uploadMusicFile():
 #返回所有音乐信息
 @app.route('/queryAllMusic',methods=['POST'])
 def queryAllMusic():
+    data_json = request.get_json()
+    print(data_json)
     musics_info = query.getAllMusicInfo()
-    return musics_info
+    return jsonify({'music':musics_info})
 
 #下载指定音乐
 @app.route('/downloadCertainMusic',methods=['POST','GET'])
@@ -299,11 +301,12 @@ def downloadCertainMusic():
     # print('data',data_json)
     # data = json.loads(data_json)
     # time = data['time']
-    # music_names = query.getCertainMusic(time)
-    #target_filepath, filename = tools.getZipfile(music_names)
-    # return send_from_directory(target_filepath, filename, as_attachment=True)
-    return send_from_directory('E:\\mp3ZipFiles', '20190327102507.zip',
-                               as_attachment=True)
+    #music_names = query.getCertainMusic()
+    music_names = ["0021.mp3"]
+    target_filepath, filename = tools.getZipfile(music_names)
+    return send_from_directory(target_filepath, filename, as_attachment=True)
+    # return send_from_directory('E:\\mp3ZipFiles', '20190327102507.zip',
+    #                            as_attachment=True)
 
 
 

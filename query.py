@@ -354,19 +354,20 @@ def getAllMusicInfo():
     musics = session.query(Music).all()
     for music in musics:
         per_music_info ={}
-        per_music_info['music_name'] = music.music_name
-        per_music_info['music_no'] = music.music_human_no_and_group
-        per_music_info['music_group'] = music.music_group
-        per_music_info['timestamp'] = music.music_insert_time
+        per_music_info['musicName'] = music.music_name
+        per_music_info['musicId'] = music.music_human_no_and_group
+        per_music_info['musicType'] = music.music_group
+        #per_music_info['timestamp'] = music.music_insert_time
         musics_info.append(per_music_info)
     session.close()
     return musics_info
 
 
-#查询大于某一插入时间的音乐文件名
-def getCertainMusic(time):
+#查询所有音乐music_human_no_and_group
+def getCertainMusic():
     session = SessionClass()
-    musics = session.query(Music).filter(Music.music_insert_time > time).all()
+    musics = session.query(Music).filter(Music.music_insert_time != 0).all()
+    #musics = session.query(Music).all()
     a = []
     for music in musics:
         a.append(music.music_human_no_and_group + '.' +'mp3')
@@ -379,9 +380,10 @@ if __name__=='__main__':
     #     print(a['grade_time'])
     # timestamps=getTreatmentPatientNumber('5A:D7:5E:52:2F:6E')
     # print(timestamps)
-    # a = getPerMusicNumber()
+    # a = getAllMusicInfo()
     # print(a)
-    a = getCertainMusic(1552527627)
+    a = getCertainMusic()
     print(a)
+    print(len(a))
 
 
