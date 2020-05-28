@@ -9,17 +9,23 @@ UPLOAD_FOLDER = 'E:\\NewMyGitProjects\\FiveNotesSqlalchemy\\mp3Files'
 ALLOWED_EXTENSIONS = set(['mp3'])
 
 app=Flask(__name__)
-app.config.update(
-    DEBUG = True,
-    MAIL_SERVER='smtp.qq.com',
-    MAIL_PROT=25,
-    MAIL_USE_TLS = False,
-    MAIL_USE_SSL = False,
-    MAIL_USERNAME = "275959399@qq.com",
-    MAIL_PASSWORD = "uzpvggxhqdllbgef",
-    MAIL_DEBUG = False
-)
+# app.config.update(    #这种写法至少在pyhton3.7，无法正确运行，另外学姐的授权码也有问题
+#     DEBUG = True,
+#     MAIL_SERVER='smtp.qq.com',
+#     MAIL_PROT=25,
+#     MAIL_USE_TLS = False,
+#     MAIL_USE_SSL = False,
+#     MAIL_USERNAME = "275959399@qq.com",
+#     MAIL_PASSWORD = "uzpvggxhqdllbgef",
+#     MAIL_DEBUG = False
+# )
 
+app.config['MAIL_SERVER'] = 'smtp.qq.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USERNAME'] = '448112096@qq.com'
+app.config['MAIL_PASSWORD'] = 'shunvpevtnnhbhjb'
 mail=Mail(app)
 
 # 判断文件是否合法
@@ -193,7 +199,7 @@ def countResultAll():
 # #下载单条数据
 # @app.route('/downloadSingleData',methods=['POST'])
 # def downloadSingleData():
-#     patient_id=request.form['patient_id']
+#     patient_id=request.form['patient_id']  
 
 #发送单条信息邮件
 @app.route('/sendMailSingle',methods=['POST'])
@@ -201,7 +207,7 @@ def sendMailSingle():
     patient_id=request.form['patient_id']
     recipient_mail = request.form['recipient_mail']  # 需要为list类型
     filename, workbook_filepath=query.singlePatientToExcel(patient_id)
-    msg = Message("嗨，这是单条数据 ", sender='275959399@qq.com', recipients=[recipient_mail])
+    msg = Message("嗨，这是单条数据 ", sender='448112096@qq.com', recipients=[recipient_mail])
     msg.body = "单条数据"      # msg.body 邮件正文
     with app.open_resource(workbook_filepath) as fp:
         msg.attach(filename, "text/xlsx", fp.read())                          # msg.attach 邮件附件添加,msg.attach("文件名", "类型", 读取文件）
@@ -220,7 +226,7 @@ def sendMailAll():
     print('patient_id',device_mac)
     print('recipient_mail',recipient_mail)
     filename,filepath = query.allPatientToExcel(device_mac)
-    msg = Message("嗨，这是所有数据 ", sender='275959399@qq.com', recipients=[recipient_mail])
+    msg = Message("嗨，这是所有数据 ", sender='448112096@qq.com', recipients=[recipient_mail])
     msg.body = "所有数据"      # msg.body 邮件正文
     with app.open_resource(filepath) as fp:
         msg.attach(filename, "text/xlsx", fp.read())                          # msg.attach 邮件附件添加,msg.attach("文件名", "类型", 读取文件）
@@ -318,6 +324,7 @@ def test():
 
 if __name__=='__main__':
     app.run(
-        host='192.168.123.189',
+        host='127.0.0.1',
+        #host='192.168.123.189',
         port=5000
     )
