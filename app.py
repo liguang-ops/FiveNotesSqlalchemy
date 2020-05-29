@@ -1,3 +1,4 @@
+#cSpell:ignore jsonify shunvpevtnnhbhjb Weixin rsplit nums xlsx uzpvggxhqdllbgef
 from flask import Flask,request,jsonify,send_from_directory
 from flask_mail import Message,Mail
 import insert,ast,query,json,update,tools
@@ -9,7 +10,7 @@ UPLOAD_FOLDER = 'E:\\NewMyGitProjects\\FiveNotesSqlalchemy\\mp3Files'
 ALLOWED_EXTENSIONS = set(['mp3'])
 
 app=Flask(__name__)
-# app.config.update(    #这种写法至少在pyhton3.7，无法正确运行，另外学姐的授权码也有问题
+# app.config.update(    #这种写法至少在python3.7，无法正确运行，另外学姐的授权码也有问题
 #     DEBUG = True,
 #     MAIL_SERVER='smtp.qq.com',
 #     MAIL_PROT=25,
@@ -29,10 +30,10 @@ app.config['MAIL_PASSWORD'] = 'shunvpevtnnhbhjb'
 mail=Mail(app)
 
 # 判断文件是否合法
-def allowed_file(filename):
+def allowed_file(filename):  
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-#插入设备信息
+#插入设备信息  api for 微信小程序，但是不使用了，微信小程序请求被注释掉了
 @app.route('/addDevice',methods=['POST'])
 def addDevice():
     device_mac = request.form['device_mac']
@@ -42,7 +43,7 @@ def addDevice():
     else:
         return jsonify({'status':0})
 
-#查询设备
+#查询设备  api for 终端
 @app.route('/queryDevice',methods=['POST'])
 def queryDevice():
     device_mac = request.form['device_mac']
@@ -53,7 +54,7 @@ def queryDevice():
         return jsonify({'status':0})
 
 
-#同步设备端所有病人信息至云端
+#同步设备端所有病人信息至云端    api for 微信小程序
 @app.route('/syncAllPatientsInfo',methods=['POST'])
 def syncAllPatientsInfo():
     patients = request.form['patients']
@@ -78,7 +79,7 @@ def syncAllPatientsInfo():
         return jsonify({'status':2})
 
 
-#获取所有患者信息
+#获取所有患者信息  api for 终端
 @app.route('/queryConsultationList',methods=['POST'])
 def queryConsultationList():
     data_json = request.get_json()
@@ -92,7 +93,7 @@ def queryConsultationList():
     except:
         return jsonify({'status':0})
 
-#小程序获取所有患者信息
+#小程序获取所有患者信息    api for 微信小程序
 @app.route('/queryConsultationListWeixin',methods=['POST'])
 def queryConsultationListWeixin():
     device_mac = request.form['device_mac']
@@ -102,7 +103,7 @@ def queryConsultationListWeixin():
     except:
         return jsonify({'status':0})
 
-#获取指定姓名的患者信息
+#获取指定姓名的患者信息   api for 微信
 @app.route('/querySearchConsultationList',methods=['POST'])
 def querySearchConsultationList():
     device_mac = request.form['device_mac']
@@ -118,7 +119,7 @@ def querySearchConsultationList():
 
 
 
-#统计每天治疗人数
+#统计每天治疗人数    api for 微信小程序
 @app.route('/countTreatmentsPatientNumber',methods=['POST'])
 def countTreatmentsPatientNumber():
     device_mac=request.form['device_mac']
@@ -129,7 +130,7 @@ def countTreatmentsPatientNumber():
         return jsonify({'status': 0})
 
 
-#统计性别人数占比
+#统计性别人数占比  api for 微信小程序
 @app.route('/countGendersProportion',methods=['POST'])
 def countGendersProportion():
     device_mac = request.form['device_mac']
@@ -141,7 +142,7 @@ def countGendersProportion():
 
 
 
-#统计第一分型人数占比
+#统计第一分型人数占比  api for 微信小程序
 @app.route('/countTypesProportion',methods=['POST'])
 def countTypesProportion():
     device_mac = request.form['device_mac']
@@ -152,7 +153,7 @@ def countTypesProportion():
         return jsonify({'status': 0})
 
 
-#统计年龄占比
+#统计年龄占比 api for 微信小程序
 @app.route('/countAgesProportion',methods=['POST'])
 def countAgesProportion():
     device_mac = request.form['device_mac']
@@ -163,7 +164,7 @@ def countAgesProportion():
         return jsonify({'status': 0})
 
 
-#统计每位医生的患者数
+#统计每位医生的患者数   api for 微信小程序
 @app.route('/countPerDoctorPatientNumber',methods=['POST'])
 def countPerDoctorPatientNumber():
     device_mac=request.form['device_mac']
@@ -175,7 +176,7 @@ def countPerDoctorPatientNumber():
 
 
 
-#统计每种类型音乐数
+#统计每种类型音乐数  api for 微信小程序
 @app.route('/countPerMusicNumber',methods=['POST'])
 def countPerMusicNumber():
     try:
@@ -185,7 +186,7 @@ def countPerMusicNumber():
         return jsonify({'status': 0})
 
 
-#统计整体疗效
+#统计整体疗效    api for 微信小程序
 @app.route('/countResultAll',methods=['POST'])
 def countResultAll():
     device_mac = request.form['device_mac']
@@ -201,7 +202,7 @@ def countResultAll():
 # def downloadSingleData():
 #     patient_id=request.form['patient_id']  
 
-#发送单条信息邮件
+#发送单条信息邮件   api for 微信小程序
 @app.route('/sendMailSingle',methods=['POST'])
 def sendMailSingle():
     patient_id=request.form['patient_id']
@@ -218,7 +219,7 @@ def sendMailSingle():
         return jsonify({'status':0})
 
 
-#发送所有信息邮件
+#发送所有信息邮件   api for 微信小程序
 @app.route('/sendMailAll',methods=['POST'])
 def sendMailAll():
     device_mac=request.form['device_mac']
@@ -236,7 +237,7 @@ def sendMailAll():
     except:
         return jsonify({'status':0})
 
-#更新单条病人信息
+#更新单条病人信息   api for 微信
 @app.route('/updatePatientInfo',methods=['POST'])
 def updatePatientInfo():
     device_mac = request.form['device_mac']
@@ -266,7 +267,7 @@ def updatePatientInfo():
     else:
         return jsonify({'status':0})
 
-#上传mp3文件
+#上传mp3文件   api for 终端
 @app.route('/uploadMusicFile',methods=['POST'])
 def uploadMusicFile():
     music_file = request.files['file']
@@ -291,8 +292,8 @@ def uploadMusicFile():
     else:
         return jsonify({'status':0})
 
-
-#返回所有音乐信息
+ 
+#返回所有音乐信息   api for 终端
 @app.route('/queryAllMusic',methods=['POST'])
 def queryAllMusic():
     data_json = request.get_json()
@@ -300,7 +301,7 @@ def queryAllMusic():
     musics_info = query.getAllMusicInfo()
     return jsonify({'music':musics_info})
 
-#下载指定音乐
+#下载指定音乐   api for 终端
 @app.route('/downloadCertainMusic',methods=['POST','GET'])
 def downloadCertainMusic():
     # data_json = request.get_json()
