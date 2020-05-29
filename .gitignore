@@ -1,2 +1,4 @@
-.idea
-__pycache__
+/.idea/
+/__pycache__/*
+/music/
+ 问题记录.txt
