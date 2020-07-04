@@ -302,9 +302,10 @@ def queryAllMusic():
     return jsonify({'music':musics_info})
 
 #下载指定音乐   api for 终端
+#后期还得改，现在为了测试，只下载了一首音乐
 @app.route('/downloadCertainMusic',methods=['POST','GET'])
 def downloadCertainMusic():
-    # data_json = request.get_json()
+    # data_json = request.get_json()   #在这里
     # print('data',data_json)
     # data = json.loads(data_json)
     # time = data['time']
