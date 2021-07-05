@@ -6,7 +6,7 @@ import os
 from tools import mapGender,mapType
 
 
-UPLOAD_FOLDER = 'E:\\NewMyGitProjects\\FiveNotesSqlalchemy\\mp3Files'
+UPLOAD_FOLDER = './music/'
 ALLOWED_EXTENSIONS = set(['mp3'])
 
 app=Flask(__name__)
@@ -20,13 +20,14 @@ app=Flask(__name__)
 #     MAIL_PASSWORD = "uzpvggxhqdllbgef",
 #     MAIL_DEBUG = False
 # )
-
+#shunvpevtnnhbhjb
 app.config['MAIL_SERVER'] = 'smtp.qq.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_DEBUG'] = True
 app.config['MAIL_USERNAME'] = '448112096@qq.com'
-app.config['MAIL_PASSWORD'] = 'shunvpevtnnhbhjb'
+app.config['MAIL_PASSWORD'] = 'enwogyuvviiycagb'
 mail=Mail(app)
 
 # 判断文件是否合法
@@ -320,13 +321,13 @@ def downloadCertainMusic():
 
 @app.route('/test',methods=['POST','GET'])
 def test():
-    return send_from_directory('E:\\NewMyGitProjects\\FiveNotesSqlalchemy\\mp3Files','0021.mp3', as_attachment=True)
+    return send_from_directory('./music/','0021.mp3', as_attachment=True)
 
 
 
 if __name__=='__main__':
     app.run(
-        host='127.0.0.1',
-        #host='192.168.123.189',
-        port=5000
+        debug=True,
+        host='0.0.0.0',
+        port=80
     )

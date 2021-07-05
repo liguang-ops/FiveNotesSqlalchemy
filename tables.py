@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship,sessionmaker
 from sqlalchemy.pool import NullPool
 
 #创建数据库连接
-engine = create_engine('mysql+pymysql://root:@localhost/fivenotes',poolclass=NullPool) #echo=True,
+engine = create_engine('mysql+pymysql://root:308YiXin++@sh-cynosdbmysql-grp-5iw5n41g.sql.tencentcdb.com:27048/fivenotes',poolclass=NullPool) #echo=True,
 SessionClass=sessionmaker(bind=engine)
 
 Base=declarative_base()
@@ -93,7 +93,7 @@ class Music(Base):
     treatment = relationship('Treatment', backref='music')
 
 if __name__=='__main__':
-    Base.metadata.drop_all(engine)
+#    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     session=SessionClass()

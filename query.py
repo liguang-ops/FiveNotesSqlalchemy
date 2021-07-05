@@ -249,7 +249,7 @@ def singlePatientToExcel(patient_id):
 
     now_time = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
     filename = 'singlePatient_'+ now_time + '.xlsx'
-    workbook_filepath = 'E:/NewMyGitProjects/FiveNotesSqlalchemy/emailData/' + filename
+    workbook_filepath = 'emailData/' + filename
 
     with xlsxwriter.Workbook(workbook_filepath) as workbook:
         worksheet_patient = workbook.add_worksheet('患者信息')
@@ -290,7 +290,7 @@ def allPatientToExcel(device_mac):
 
     now_time = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
     filename = 'allPatients_' + now_time + '.xlsx'
-    workbook_filepath ='E:/NewMyGitProjects/FiveNotesSqlalchemy/emailData/' + filename
+    workbook_filepath ='./emailData/' + filename
 
     with xlsxwriter.Workbook(workbook_filepath) as workbook:
         worksheet_patient = workbook.add_worksheet('患者信息')          # 创建患者信息sheet表
