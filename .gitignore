@@ -1,6 +1,15 @@
+#IDE config file
 /.idea/
+
+# python cache
 /__pycache__/*
+
+#music files
 /music/
- 问题记录.txt
- *.mp3
+*.mp3
+
+#email cache data
 /emailData/*.xlsx
+
+#program config
+config.json

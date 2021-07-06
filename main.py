@@ -21,13 +21,16 @@ app=Flask(__name__)
 #     MAIL_DEBUG = False
 # )
 #shunvpevtnnhbhjb
+with open('config.json') as f:
+    config = json.loads(f.read())
+    
 app.config['MAIL_SERVER'] = 'smtp.qq.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_DEBUG'] = True
-app.config['MAIL_USERNAME'] = '448112096@qq.com'
-app.config['MAIL_PASSWORD'] = 'enwogyuvviiycagb'
+app.config['MAIL_USERNAME'] = config['smtp']
+app.config['MAIL_PASSWORD'] = config['auth_code']
 mail=Mail(app)
 
 # 判断文件是否合法

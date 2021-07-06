@@ -2,9 +2,18 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column,Integer,String,Text,LargeBinary,ForeignKey,UniqueConstraint,Index,create_engine
 from sqlalchemy.orm import relationship,sessionmaker
 from sqlalchemy.pool import NullPool
+import json
 
+
+with open('config.json') as f:
+    config = json.loads(f.read())
 #创建数据库连接
-engine = create_engine('mysql+pymysql://root:308YiXin++@sh-cynosdbmysql-grp-5iw5n41g.sql.tencentcdb.com:27048/fivenotes',poolclass=NullPool) #echo=True,
+host=config['host']
+port=config['port']
+user=config['user']
+pwd=config['pwd']
+dbname= config['dbname']
+engine = create_engine('mysql+pymysql://'+user+':'+ pwd+ '@' + host + ':' + port + '/' + dbname,poolclass=NullPool) #echo=True,
 SessionClass=sessionmaker(bind=engine)
 
 Base=declarative_base()
